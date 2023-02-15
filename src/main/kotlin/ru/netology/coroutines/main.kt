@@ -119,6 +119,7 @@ suspend fun getPosts(client: OkHttpClient): List<Post> =
 suspend fun getComments(client: OkHttpClient, id: Long): List<Comment> =
     makeRequest("$BASE_URL/api/slow/posts/$id/comments", client, object : TypeToken<List<Comment>>() {})
 */
+///////////////////////////////////////////////
 
 private val gson = Gson()
 private val BASE_URL = "http://127.0.0.1:9999"
@@ -134,29 +135,14 @@ fun main() {
         launch {
             try {
                val posts = getPosts(client)
-                //val authors = getAuthors(client, id)
                     .map { post ->
                         async {
                             PostWithComments(post, getComments(client, post.id))
-
-                            PostWithAuthorsAndComments(post, getAuthors(client, post.id), getComments(client, post.id) )
+                            PostWithAuthors(post, getAuthors(client, post.authorId))
+                            AuthorsOfComments(post, getAuthors(client, post.authorId), getComments(client, post.id))
                         }
                     }.awaitAll()
-                //println()
                 println(posts)
-                /*val posts = getPosts(client)
-                //val authors = getAuthors(client, )
-                val postsWithAuthorsAndComments = posts.map { post ->
-                    async {
-                        val authors = getAuthors(client, post.authorId)
-                        val author = authors.first { author -> author.id == post.authorId }
-                        val comments = getComments(client, post.id)
-                        PostWithAuthorsAndComments(post, author, comments)
-                    }
-                }.awaitAll()
-                println()
-                println(postsWithAuthorsAndComments)*/
-
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -202,7 +188,10 @@ suspend fun getPosts(client: OkHttpClient): List<Post> =
 suspend fun getComments(client: OkHttpClient, id: Long): List<Comment> =
     makeRequest("$BASE_URL/api/slow/posts/$id/comments", client, object : TypeToken<List<Comment>>() {})
 
+
 /*suspend fun getAuthors(client: OkHttpClient, id: Long): List<Author> =
     makeRequest("$BASE_URL/api/slow/author/$id", client, object : TypeToken<List<Author>>() {})*/
+
 suspend fun getAuthors(client: OkHttpClient, id: Long): List<Author> =
     makeRequest("$BASE_URL/api/authors/$id", client, object : TypeToken<List<Author>>() {})
+
